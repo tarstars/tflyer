@@ -18,10 +18,10 @@ def make_glider():
                                      
                                      
                                      
-         *                           
-          *                          
-        ***                          
                                      
+             *                       
+              *                      
+            ***                      
                                      
                                      
                                      
@@ -45,27 +45,28 @@ def create_one_step_graph():
     graph = tf.Graph()
     with graph.as_default():
         field = tf.placeholder(dtype=tf.float32)
-        fsh = tf.shape(field)
-        n_field = field - 0.5
-        conv_mask = tf.constant([[1, 1, 1], [1, 0, 1], [1, 1, 1]],
-                                dtype=tf.float32)
-        conv_mask = tf.reshape(conv_mask, (3, 3, 1, 1))
-        p_ext_field = tf.concat([field[-1:, :], field, field[:1, :]], axis=0)
-        q_ext_field = tf.concat([p_ext_field[:, -1:], p_ext_field,
-                                 p_ext_field[:, :1]],
-                                axis=1)
-        efsh = tf.shape(q_ext_field)
-        nhwc_ext_field = tf.reshape(q_ext_field, (1, efsh[0], efsh[1], 1))
-        neighbours = tf.nn.conv2d(input=nhwc_ext_field, filter=conv_mask,
-                                  strides=[1, 1, 1, 1], padding='SAME')
-        cycle_nei = neighbours[0, 1:-1, 1:-1, 0]
-        stay_mask = tf.nn.relu(1.5 - (tf.nn.relu(cycle_nei - 1.5) +
-                                      tf.nn.relu(2.5 - cycle_nei)))
-        born_mask = tf.nn.relu(1.5 - (tf.nn.relu(cycle_nei - 2.5) +
-                                      tf.nn.relu(3.5 - cycle_nei)))
-        next_field = tf.sign(tf.nn.relu(tf.multiply(n_field, stay_mask)) +
-                            born_mask)
-    return graph, field, next_field
+        n_field = tf.expand_dims(field - 0.5, 0)
+        n_field = tf.expand_dims(n_field, 3)
+        conv_mask = tf.constant([[1, 1, 1],
+                                 [1, 0, 1],
+                                 [1, 1, 1]], dtype=tf.float32)
+        conv_mask = tf.expand_dims(conv_mask, 2)
+        conv_mask = tf.expand_dims(conv_mask, 3)
+
+        p_field = tf.concat([field[-1:, :], field, field[:1, :]], axis=0)
+        pq_field = tf.concat([p_field[:, -1:], p_field, p_field[:, :1]], axis=1)
+        ext_field = tf.expand_dims(pq_field, 2)
+        ext_field = tf.expand_dims(ext_field, 0)
+
+        neis = tf.nn.conv2d(input=ext_field, filter=conv_mask,
+                            strides=[1, 1, 1, 1], padding='VALID')
+        stay_mask = tf.nn.relu(1.5 - (tf.nn.relu(neis - 1.5) +
+                                      tf.nn.relu(2.5 - neis)))
+        born_mask = tf.nn.relu(1.5 - (tf.nn.relu(neis - 2.5) +
+                                      tf.nn.relu(3.5 - neis)))
+        next_field = tf.sign(tf.nn.relu(tf.multiply(n_field, stay_mask))
+                             + born_mask)
+    return graph, field, next_field[0, :, :, 0]
 
 def main():
     input = make_glider()
