@@ -25,7 +25,15 @@ def make_glider():
 '''
     return str2numpy(f)
 
-def create_glider_graph():
+def create_one_step_graph():
+    ''' It is not full solution yet, but the simple and effective way
+    to show that there is an exact solution among neural networks.
+    This graph contains only typical for neural networks operations:
+    plus, minus, multiplication and relu. Nevertheless, it allows us
+    to perform one step of Convey's life game. Glider moving through
+    the rectangular field allows us to test in the simple and efficient
+    way that it is OK with all corner cases.
+    '''
     graph = tf.Graph()
     with graph.as_default():
         field = tf.placeholder(dtype=tf.float32)
@@ -47,17 +55,16 @@ def create_glider_graph():
                                       tf.nn.relu(2.5 - cycle_nei)))
         born_mask = tf.nn.relu(1.5 - (tf.nn.relu(cycle_nei - 2.5) +
                                       tf.nn.relu(3.5 - cycle_nei)))
-        new_field = tf.sign(tf.nn.relu(tf.multiply(n_field, stay_mask)) +
+        next_field = tf.sign(tf.nn.relu(tf.multiply(n_field, stay_mask)) +
                             born_mask)
-        result = new_field
-    return graph, field, result
+    return graph, field, next_field
 
 def main():
     input = make_glider()
-    graph, field, result = create_glider_graph()
+    graph, field, next_field = create_one_step_graph()
     with tf.Session(graph=graph) as sess:
         for _ in range(1000):
-            ans = sess.run(result, {field: input})
+            ans = sess.run(next_field, {field: input})
             print(numpy2str(ans.astype(np.uint8)))
             time.sleep(0.05)
             print('\033[2J')
