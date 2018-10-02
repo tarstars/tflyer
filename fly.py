@@ -14,10 +14,18 @@ def numpy2str(a):
 def make_glider():
     f = '''
                                      
-                             *       
-         *                    *      
-          *                 ***      
+                                     
+                                     
+                                     
+                                     
+         *                           
+          *                          
         ***                          
+                                     
+                                     
+                                     
+                                     
+                                     
                                      
                                      
                                      
@@ -66,7 +74,7 @@ def main():
         for _ in range(1000):
             ans = sess.run(next_field, {field: input})
             print(numpy2str(ans.astype(np.uint8)))
-            time.sleep(0.05)
+            time.sleep(0.01)
             print('\033[2J')
             input = ans
 

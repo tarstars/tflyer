@@ -7,11 +7,11 @@
 class Matrix {
   typedef std::vector<char> storage_type;
  public:
- Matrix(int h, int w):h(h), w(w), dat(h*w) {}
+ Matrix(int h, int w): w(w), dat(h*w) {}
   storage_type::iterator operator[](int ind) {return dat.begin() + w * ind;}
   storage_type::const_iterator operator[](int ind) const {return dat.begin() + w * ind;}
  private:
-  int h, w;
+  int w;
   storage_type dat; // char can be template parameter of Matrix
 };
   
